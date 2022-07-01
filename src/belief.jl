@@ -4,12 +4,12 @@ struct PFTBelief{T} <: AbstractParticleBelief{T}
     non_terminal_ws::Float64
 end
 
-function PFTBelief(particles::Vector{T}, weights::Vector{Float64}, pomdp::POMDP) where {T}
+function PFTBelief(particles::Vector, weights::Vector{Float64}, pomdp::POMDP)
     terminal_ws = 0.0
     for (s,w) in zip(particles, weights)
         !isterminal(pomdp, s) && (terminal_ws += w)
     end
-    return PFTBelief{T}(particles, weights, terminal_ws)
+    return PFTBelief(particles, weights, terminal_ws)
 end
 
 @inline ParticleFilters.n_particles(b::PFTBelief) = length(b.particles)

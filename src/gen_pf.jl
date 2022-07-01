@@ -1,8 +1,8 @@
-function τ(planner, b::PFTBelief{S}, a, o) where S
+function gen_pf(planner, b::PFTBelief{S}, a, o) where S
     rng = planner.sol.rng
     pomdp = planner.pomdp
     N = n_particles(b)
-    Rba = 0.0
+    ρ = 0.0
 
     s′ = Vector{S}(undef, N)
     w′ = Vector{Float64}(undef, N)
@@ -14,11 +14,11 @@ function τ(planner, b::PFTBelief{S}, a, o) where S
             (sp,r) = (s, 0.0)
         end
 
-        bp_particles[i] = sp
         w = weight(b, i)
-        bp_weights[i] = w*pdf(POMDPs.observation(pomdp, s, a, sp), o)
+        s′[i] = sp
+        w′[i] = w*pdf(POMDPs.observation(pomdp, s, a, sp), o)
 
-        Rba += r*w
+        ρ += r*w
     end
-    return PFTBelief(s′, w′, pomdp)
+    return PFTBelief(s′, w′, pomdp), ρ
 end

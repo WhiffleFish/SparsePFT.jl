@@ -7,7 +7,8 @@ Base.@kwdef struct SparsePFTSolver{RNG<:AbstractRNG} <: Solver
     k_o::Float64           = 10.0
     k_a::Float64           = 5.0
     rng::RNG               = Random.default_rng()
-    value_estimator::VE    = FastRandomSolver()
+    value_estimator::Any   = RandomRollout()
+    check_repeat_obs::Bool = true
     enable_action_pw::Bool = false
 end
 
@@ -21,9 +22,9 @@ end
 function POMDPs.solve(sol::SparsePFTSolver, pomdp::POMDP{S,A,O}) where {S,A,O}
     solved_ve = MCTS.convert_estimator(sol.value_estimator, sol, pomdp)
     sz = min(sol.tree_queries, 100_000)
-    return PFTDPWPlanner(
+    return SparsePFTPlanner(
         sol,
-        PFTDPWTree{S,A,O}(sz, check_repeat_obs=sol.check_repeat_obs),
+        SparseParticleTree{S,A,O}(sz, check_repeat_obs=sol.check_repeat_obs),
         pomdp,
         solved_ve
     )

@@ -2,7 +2,7 @@ function POMDPModelTools.action_info(planner::SparsePFTPlanner, b)
     t0 = time()
 
     (;sol,pomdp) = planner
-    (;max_iter, max_time, max_depth) = sol
+    (;tree_queries, max_time, max_depth) = sol
 
     A = actiontype(pomdp)
 
@@ -10,8 +10,8 @@ function POMDPModelTools.action_info(planner::SparsePFTPlanner, b)
     insert_root!(planner, b)
 
     iter = 0
-    while (time()-t0 < max_time) && (iter < max_iter)
-        search(planner, 1, max_depth)
+    while (time()-t0 < max_time) && (iter < tree_queries)
+        simulate(planner, 1, max_depth)
         iter += 1
     end
 
@@ -24,6 +24,6 @@ function POMDPModelTools.action_info(planner::SparsePFTPlanner, b)
         )
 end
 
-function POMDPs.action(planner::PFTDPWPlanner, b)
+function POMDPs.action(planner::SparsePFTPlanner, b)
     return first(action_info(planner, b))
 end

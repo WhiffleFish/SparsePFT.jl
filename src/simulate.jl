@@ -1,4 +1,4 @@
-function search(planner::PFTDPWPlanner, b_idx::Int, d::Int)
+function simulate(planner::SparsePFTPlanner, b_idx::Int, d::Int)
     (;tree, pomdp, sol) = planner
     γ = discount(pomdp)
 
@@ -9,23 +9,22 @@ function search(planner::PFTDPWPlanner, b_idx::Int, d::Int)
     a, ba_idx = ucb_action(planner, b_idx)
     if length(tree.ba_children[ba_idx]) ≤ sol.k_o
         sample_s = non_terminal_sample(sol.rng, pomdp, tree.b[b_idx])
-        o = @gen(:o)(pomdp, sample_s, a, planner.sol.rng)
+        o = @gen(:o)(pomdp, sample_s, a, sol.rng)
 
-        if !haskey(tree.bao_children, (ba_idx, o))
-            bp, _, r = τ(planner, b, a, o)
-            insert_belief!(tree, bp, ba_idx, o, r, planner)
-            ro = MCTS.estimate_value(planner.solved_VE, pomdp, bp, d-1)
-            total = r + γ*ro
+        if !sol.check_repeat_obs || !haskey(tree.bao_children, (ba_idx, o))
+            bp, ρ = gen_pf(planner, tree.b[b_idx], a, o)
+            insert_belief!(planner, bp, ba_idx, o, ρ)
+            total = ρ + γ*MCTS.estimate_value(planner.value_estimator, pomdp, bp, d-1)
         else
             bp_idx = tree.bao_children[(ba_idx,o)]
             push!(tree.ba_children[ba_idx], bp_idx)
-            r = tree.b_rewards[bp_idx]
-            total = r + γ*search(planner, bp_idx, d-1)
+            ρ = tree.b_rewards[bp_idx]
+            total = ρ + γ*simulate(planner, bp_idx, d-1)
         end
     else
         bp_idx = rand(sol.rng, tree.ba_children[ba_idx])
         r = tree.b_rewards[bp_idx]
-        total = r + γ*search(planner, bp_idx, d-1)
+        total = r + γ*simulate(planner, bp_idx, d-1)
     end
 
     tree.Nh[b_idx] += 1

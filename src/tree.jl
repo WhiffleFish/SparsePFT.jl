@@ -27,7 +27,7 @@ struct SparseParticleTree{S,A,O}
 end
 
 
-function insert_belief!(planner::SparsePFTPlanner, b::PFTBelief, ba_idx, o, r)
+function insert_belief!(planner, b::PFTBelief, ba_idx, o, r)
     tree = planner.tree
     n_b = length(tree.b)+1
     push!(tree.b, b)
@@ -38,7 +38,7 @@ function insert_belief!(planner::SparsePFTPlanner, b::PFTBelief, ba_idx, o, r)
     push!(tree.b_children, Int[])
 
     if planner.sol.check_repeat_obs
-        tree.bao_children[(ba_idx,obs)] = n_b
+        tree.bao_children[(ba_idx,o)] = n_b
     end
     return n_b
 end
@@ -58,7 +58,7 @@ function initial_belief(rng::AbstractRNG, pomdp::POMDP{S}, b, n_p::Int) where S
     return PFTBelief(s, w, term_ws)
 end
 
-function insert_root!(planner::SparsePFTPlanner, b)
+function insert_root!(planner, b)
     particle_b = initial_belief(planner.sol.rng, planner.pomdp, b, planner.sol.n_particles)
     push!(planner.tree.b, particle_b)
     push!(planner.tree.b_children, Int[])
@@ -66,7 +66,7 @@ function insert_root!(planner::SparsePFTPlanner, b)
     push!(planner.tree.b_rewards, 0.0)
 end
 
-function insert_action!(planner::SparsePFTPlanner, tree::SparseParticleTree, b_idx, a)
+function insert_action!(tree::SparseParticleTree, b_idx, a)
     n_ba = length(tree.ba_children)+1
     push!(tree.b_children[b_idx], (a,n_ba))
     push!(tree.ba_children, Int[])
