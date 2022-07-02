@@ -12,3 +12,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 ParticleFilters = "0.5"
+POMDPModelTools = "0.3"
+MCTS = "0.5"
+POMDPs = "0.9"
+julia = "1.7"
